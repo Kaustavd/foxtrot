@@ -132,12 +132,7 @@ public class FilterAction extends Action<Query> {
             throw FoxtrotExceptions.queryCreationException(parameter, e);
         }
         try {
-            SearchResponse response;
-            if(isFetchQueryTimeBounded()) {
-                response = search.execute().actionGet(getFetchQueryTimeout(), TimeUnit.SECONDS);
-            } else {
-                response = search.execute().actionGet();
-            }
+            SearchResponse response = search.execute().actionGet(getFetchQueryTimeout(), TimeUnit.MILLISECONDS);
             List<String> ids = new ArrayList<>();
             SearchHits searchHits = response.getHits();
             for (SearchHit searchHit : searchHits) {

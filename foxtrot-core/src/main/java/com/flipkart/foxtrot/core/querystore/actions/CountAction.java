@@ -109,12 +109,7 @@ public class CountAction extends Action<CountRequest> {
             }
 
             try {
-                SearchResponse response;
-                if(isCountQueryTimeBounded()) {
-                    response = query.execute().actionGet(getCountQueryTimeout(), TimeUnit.SECONDS);
-                } else {
-                    response = query.execute().actionGet();
-                }
+                SearchResponse response = query.execute().actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
                 Aggregations aggregations = response.getAggregations();
                 Cardinality cardinality = aggregations.get(Utils.sanitizeFieldForAggregation(parameter.getField()));
                 if (cardinality == null) {
@@ -137,11 +132,7 @@ public class CountAction extends Action<CountRequest> {
             }
             try {
                 org.elasticsearch.action.count.CountResponse countResponse;
-                if(isCountQueryTimeBounded()) {
-                    countResponse = countRequestBuilder.execute().actionGet(getCountQueryTimeout(),TimeUnit.SECONDS);
-} else {
-                    countResponse = countRequestBuilder.execute().actionGet();
-                }
+                    countResponse = countRequestBuilder.execute().actionGet(getCountQueryTimeout(),TimeUnit.MILLISECONDS);
                 return new CountResponse(countResponse.getCount());
             } catch (ElasticsearchException e) {
                 throw FoxtrotExceptions.createQueryExecutionException(parameter, e);
