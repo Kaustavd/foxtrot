@@ -25,8 +25,10 @@ import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.exception.FoxtrotException;
 import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.querystore.DocumentTranslator;
+import com.flipkart.foxtrot.core.util.MetricUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -116,6 +119,8 @@ public class HBaseDataStore implements DataStore {
         List<Put> puts = new Vector<>();
         ImmutableList.Builder<Document> translatedDocuments = ImmutableList.builder();
         List<String> errorMessages = new ArrayList<>();
+        Stopwatch stopwatch = new Stopwatch();
+        String abbreviatedProfileName = HBaseDataStore.class.getName() + "." + Thread.currentThread().getStackTrace()[1].getMethodName();
         try {
             for (int i = 0; i < documents.size(); i++) {
                 Document document = documents.get(i);
@@ -142,12 +147,16 @@ public class HBaseDataStore implements DataStore {
         if (!errorMessages.isEmpty()) {
             throw FoxtrotExceptions.createBadRequestException(table.getName(), errorMessages);
         }
-
         org.apache.hadoop.hbase.client.Table hTable = null;
         try {
             hTable = tableWrapper.getTable(table);
+            stopwatch.start();
             hTable.put(puts);
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionSuccess(abbreviatedProfileName, table.getName(),  stopwatch.elapsed(TimeUnit.MILLISECONDS));
         } catch (IOException e) {
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionFailure(abbreviatedProfileName, table.getName(),  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             throw FoxtrotExceptions.createConnectionException(table, e);
         } finally {
             if (null != hTable) {
@@ -204,6 +213,8 @@ public class HBaseDataStore implements DataStore {
             throw FoxtrotExceptions.createBadRequestException(table.getName(), "Empty ID List");
         }
         org.apache.hadoop.hbase.client.Table hTable = null;
+        Stopwatch stopwatch = new Stopwatch();
+        String abbreviatedProfileName = HBaseDataStore.class.getName() + "." + Thread.currentThread().getStackTrace()[1].getMethodName();
         try {
             List<Get> gets = new ArrayList<>(ids.size());
             for (String id : ids) {
@@ -215,7 +226,10 @@ public class HBaseDataStore implements DataStore {
                 gets.add(get);
             }
             hTable = tableWrapper.getTable(table);
+            stopwatch.start();
             Result[] getResults = hTable.get(gets);
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionSuccess(abbreviatedProfileName, table.getName(),  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             List<String> missingIds = new ArrayList<>();
             List<Document> results = new ArrayList<>(ids.size());
             for (int index = 0; index < getResults.length; index++) {
@@ -242,8 +256,12 @@ public class HBaseDataStore implements DataStore {
             }
             return results;
         } catch (JsonProcessingException e) {
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionFailure(abbreviatedProfileName, table.getName(),  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             throw FoxtrotExceptions.createBadRequestException(table, e);
         } catch (IOException e) {
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionFailure(abbreviatedProfileName, table.getName(),  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             throw FoxtrotExceptions.createConnectionException(table, e);
         } finally {
             if (null != hTable) {

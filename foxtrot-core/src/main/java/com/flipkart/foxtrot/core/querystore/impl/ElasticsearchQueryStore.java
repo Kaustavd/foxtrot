@@ -28,6 +28,8 @@ import com.flipkart.foxtrot.core.exception.FoxtrotExceptions;
 import com.flipkart.foxtrot.core.parsers.ElasticsearchMappingParser;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.table.TableMetadataManager;
+import com.flipkart.foxtrot.core.util.MetricUtil;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -73,6 +75,7 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final DataStore dataStore;
     private final TableMetadataManager tableMetadataManager;
     private final ObjectMapper mapper;
+    private static final String SEPERATOR = ":";
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
                                    ElasticsearchConnection connection,
@@ -124,6 +127,8 @@ public class ElasticsearchQueryStore implements QueryStore {
     @Timed
     public void save(String table, List<Document> documents) throws FoxtrotException {
         table = ElasticsearchUtils.getValidTableName(table);
+        Stopwatch stopwatch = new Stopwatch();
+        String abbreviatedProfilerName = ElasticsearchQueryStore.class.getName() + SEPERATOR + Thread.currentThread().getStackTrace()[1].getMethodName();
         try {
             if (!tableMetadataManager.exists(table)) {
                 throw FoxtrotExceptions.createBadRequestException(table,
@@ -153,10 +158,13 @@ public class ElasticsearchQueryStore implements QueryStore {
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0) {
+                stopwatch.start();
                 BulkResponse responses = bulkRequestBuilder
                         .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                         .execute()
                         .get(10, TimeUnit.SECONDS);
+                stopwatch.stop();
+                MetricUtil.getInstance().registerDataStoreActionSuccess(abbreviatedProfilerName, table,  stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 for (int i = 0; i < responses.getItems().length; i++) {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     if (itemResponse.isFailed()) {
@@ -174,8 +182,12 @@ public class ElasticsearchQueryStore implements QueryStore {
                 }
             }
         } catch (JsonProcessingException e) {
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionFailure(abbreviatedProfilerName, table,  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             throw FoxtrotExceptions.createBadRequestException(table, e);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            stopwatch.stop();
+            MetricUtil.getInstance().registerDataStoreActionFailure(abbreviatedProfilerName, table,  stopwatch.elapsed(TimeUnit.MILLISECONDS));
             throw FoxtrotExceptions.createExecutionException(table, e);
         }
     }

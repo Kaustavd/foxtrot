@@ -47,6 +47,16 @@ public class MetricUtil {
         registerActionOperation(opcode, metricKey, "success", duration);
     }
 
+    public void registerDataStoreActionSuccess(String packagePrefix, String table, long duration) {
+        registerDataStoreAction(packagePrefix, table, "success", duration);
+    }
+
+    public void registerDataStoreActionFailure(String packagePrefix, String table, long duration) {
+        registerDataStoreAction(packagePrefix, table, "failure", duration);
+    }
+
+
+
     public void registerActionFailure(String opcode, String metricKey, long duration) {
         registerActionOperation(opcode, metricKey, "failure", duration);
     }
@@ -57,6 +67,15 @@ public class MetricUtil {
         metrics.timer(String.format("%s.%s.%s.%s", packagePrefix, actionMetricPrefix, opcode, metricKey))
                 .update(duration, TimeUnit.MILLISECONDS);
         metrics.timer(String.format("%s.%s.%s.%s.%s", packagePrefix, actionMetricPrefix, opcode, metricKey, status))
+                .update(duration, TimeUnit.MILLISECONDS);
+    }
+
+    private void registerDataStoreAction(String packagePrefix, String table, String status, long duration) {
+        metrics.timer(String.format("%s", packagePrefix))
+                .update(duration, TimeUnit.MILLISECONDS);
+        metrics.timer(String.format("%s.%s", packagePrefix, table))
+                .update(duration, TimeUnit.MILLISECONDS);
+        metrics.timer(String.format("%s.%s.%s", packagePrefix, table, status))
                 .update(duration, TimeUnit.MILLISECONDS);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
