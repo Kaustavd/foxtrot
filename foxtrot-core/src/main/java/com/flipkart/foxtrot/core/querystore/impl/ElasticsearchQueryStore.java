@@ -76,6 +76,7 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final TableMetadataManager tableMetadataManager;
     private final ObjectMapper mapper;
     private static final String SEPERATOR = ":";
+    private static final int TOO_MANY_REQUESTS = 429;
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
                                    ElasticsearchConnection connection,
@@ -173,7 +174,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                                 mapper.writeValueAsString(documents.get(i))));
                         int httpStatus = itemResponse.getFailure().getStatus().getStatus();
                         Exception e = new Exception(itemResponse.getFailureMessage());
-                        if (httpStatus>= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+                        if (httpStatus>= HttpStatus.SC_INTERNAL_SERVER_ERROR ||
+                                httpStatus == TOO_MANY_REQUESTS) {
                             throw FoxtrotExceptions.createExecutionException(table, e);
                         } else {
                             throw FoxtrotExceptions.createBadRequestException(table,e);
