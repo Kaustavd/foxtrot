@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.flipkart.foxtrot.core.util.ElasticsearchQueryUtils.QUERY_SIZE;
 
@@ -145,7 +146,7 @@ public class TrendAction extends Action<TrendRequest> {
         SearchRequestBuilder searchRequestBuilder = getRequestBuilder(parameter);
         try {
             SearchResponse searchResponse = searchRequestBuilder.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(searchResponse, parameter);
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);

@@ -20,6 +20,7 @@ import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.flipkart.foxtrot.core.util.ElasticsearchQueryUtils.QUERY_SIZE;
 
@@ -86,7 +87,7 @@ public class CountAction extends Action<CountRequest> {
 
         try {
             SearchResponse response = query.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(response, parameter);
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);

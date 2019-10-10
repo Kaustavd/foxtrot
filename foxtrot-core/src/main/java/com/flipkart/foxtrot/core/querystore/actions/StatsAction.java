@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.flipkart.foxtrot.core.util.ElasticsearchQueryUtils.QUERY_SIZE;
@@ -104,7 +105,7 @@ public class StatsAction extends Action<StatsRequest> {
         SearchRequestBuilder searchRequestBuilder = getRequestBuilder(parameter);
         try {
             SearchResponse response = searchRequestBuilder.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(response, parameter);
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);

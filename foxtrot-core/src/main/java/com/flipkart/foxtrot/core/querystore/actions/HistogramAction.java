@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.flipkart.foxtrot.core.util.ElasticsearchQueryUtils.QUERY_SIZE;
 
@@ -116,7 +117,7 @@ public class HistogramAction extends Action<HistogramRequest> {
         SearchRequestBuilder searchRequestBuilder = getRequestBuilder(parameter);
         try {
             SearchResponse response = searchRequestBuilder.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(response, parameter);
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);

@@ -108,12 +108,14 @@ public abstract class Action<P extends ActionRequest> {
         return execute(parameter);
     }
 
-    public long getGetQueryTimeout() {
-        if (getConnection().getConfig() == null) {
-            return ElasticsearchConfig.DEFAULT_TIMEOUT;
-        }
-        return getConnection().getConfig()
-                .getGetQueryTimeout();
+
+    public long getCountQueryTimeout() {
+        return getConnection().getConfig().getCountQueryTimeout();
+    }
+
+
+    public long getFetchQueryTimeout() {
+        return getConnection().getConfig().getFetchQueryTimeout();
     }
 
     private void validateBase(P parameter) {

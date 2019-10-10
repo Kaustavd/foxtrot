@@ -150,7 +150,7 @@ public class GroupAction extends Action<GroupRequest> {
         SearchRequestBuilder query = getRequestBuilder(parameter);
         try {
             SearchResponse response = query.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(response, parameter);
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(parameter, e);

@@ -7,19 +7,36 @@ server:
       port: 17001
 
 elasticsearch:
-  hosts:
-  - localhost
-  cluster: foxtrot
+  hosts: ["10.33.61.120"]
+  cluster: prod-transactfoxtrot-elasticsearch
   tableNamePrefix: foxtrot
-  getQueryTimeout: 10000
+  countQueryTimeout: 10000
+  fetchQueryTimeout: 10000
+
 
 hbase:
-  secure : false
+  secure: false
   tableName: foxtrot
-  hbaseZookeeperQuorum: localhost:2181
-  hbaseZookeeperClientPort: 2181
+  coreSite: /etc/hadoop/conf/core-site.xml
+  hdfsSite: /etc/hadoop/conf/hdfs-site.xml
+  hbasePolicy: /etc/hbase/conf/hbase-policy.xml
+  hbaseSite: /etc/hbase/conf/hbase-site.xml
   seggregatedTablePrefix: foxtrot-
-  hbaseZookeeperZnodeParent: /hbase-unsecure
+  rawKeyVersion: 2.0
+  deletionconfig:
+  active: false
+  interval: 86400
+  initialdelay: 60
+  logging:
+  level: INFO
+  appenders:
+    - type: file
+      threshold: ALL
+      currentLogFilename: /var/log/flipkart/foxtrot-server/server.log
+      maxFileSize: 400MB
+      archivedLogFilenamePattern: /var/log/flipkart/foxtrot-server/server-%i.log.gz
+      archivedFileCount: 3
+      timeZone: IST
 
 cluster:
   name: foxtrot

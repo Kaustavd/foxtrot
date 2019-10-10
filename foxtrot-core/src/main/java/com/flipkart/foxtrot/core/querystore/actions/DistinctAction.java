@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.flipkart.foxtrot.core.util.ElasticsearchQueryUtils.QUERY_SIZE;
@@ -110,7 +111,7 @@ public class DistinctAction extends Action<DistinctRequest> {
 
         try {
             SearchResponse response = query.execute()
-                    .actionGet(getGetQueryTimeout());
+                    .actionGet(getCountQueryTimeout(), TimeUnit.MILLISECONDS);
             return getResponse(response, getParameter());
         } catch (ElasticsearchException e) {
             throw FoxtrotExceptions.createQueryExecutionException(request, e);

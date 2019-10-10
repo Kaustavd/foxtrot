@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
@@ -82,6 +83,8 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final List<IndexerEventMutator> mutators;
     private final ObjectMapper mapper;
     private final CardinalityConfig cardinalityConfig;
+    private static final String SEPERATOR = ":";
+    private static final int TOO_MANY_REQUESTS = 429;
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
                                    ElasticsearchConnection connection,
@@ -220,6 +223,14 @@ public class ElasticsearchQueryStore implements QueryStore {
                         logger.error("Table : {} Failure Message : {} Document : {}", table, itemResponse.getFailureMessage(),
                                 failedDocument
                         );
+                        int httpStatus = itemResponse.getFailure().getStatus().getStatus();
+                        Exception e = new Exception(itemResponse.getFailureMessage());
+                        if (httpStatus>= HttpStatus .SC_INTERNAL_SERVER_ERROR ||
+                                httpStatus == TOO_MANY_REQUESTS) {
+                            throw FoxtrotExceptions.createExecutionException(table, e);
+                        } else {
+                            throw FoxtrotExceptions.createBadRequestException(table,e);
+                        }
                     }
                 }
             }

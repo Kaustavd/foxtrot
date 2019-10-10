@@ -29,7 +29,7 @@ import java.util.List;
  */
 @NoArgsConstructor
 public class ElasticsearchConfig {
-    public static final long DEFAULT_TIMEOUT = 10000L;
+    public static final long DEFAULT_TIMEOUT = 300000L;
     @Valid
     @NotNull
     @JsonProperty
@@ -40,7 +40,8 @@ public class ElasticsearchConfig {
     @JsonProperty
     private String cluster;
     private String tableNamePrefix = "foxtrot";
-    private long getQueryTimeout;
+    private long countQueryTimeout;
+    private long fetchQueryTimeout;
     private Integer port;
 
     public List<String> getHosts() {
@@ -75,8 +76,13 @@ public class ElasticsearchConfig {
         this.port = port;
     }
 
-    public long getGetQueryTimeout() {
-        return getQueryTimeout > 0 ? getQueryTimeout : DEFAULT_TIMEOUT;
+    public long getCountQueryTimeout() {
+        return countQueryTimeout>0?countQueryTimeout:DEFAULT_TIMEOUT;
+    }
+
+
+    public long getFetchQueryTimeout() {
+         return fetchQueryTimeout>0?fetchQueryTimeout:DEFAULT_TIMEOUT;
     }
 
 }
