@@ -15,7 +15,7 @@ elasticsearch:
 
 
 hbase:
-  secure: false
+  secure : false
   tableName: foxtrot
   coreSite: /etc/hadoop/conf/core-site.xml
   hdfsSite: /etc/hadoop/conf/hdfs-site.xml
@@ -23,20 +23,6 @@ hbase:
   hbaseSite: /etc/hbase/conf/hbase-site.xml
   seggregatedTablePrefix: foxtrot-
   rawKeyVersion: 2.0
-  deletionconfig:
-  active: false
-  interval: 86400
-  initialdelay: 60
-  logging:
-  level: INFO
-  appenders:
-    - type: file
-      threshold: ALL
-      currentLogFilename: /var/log/flipkart/foxtrot-server/server.log
-      maxFileSize: 400MB
-      archivedLogFilenamePattern: /var/log/flipkart/foxtrot-server/server-%i.log.gz
-      archivedFileCount: 3
-      timeZone: IST
 
 cluster:
   name: foxtrot
